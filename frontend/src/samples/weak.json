@@ -1,0 +1,11 @@
+{
+  "elements": [
+    { "id": "rect_001", "shape": "rectangle", "label": "职工", "attributes": ["*职工编号","姓名","性别","出生年月","家庭住址","联系电话"], "position": { "x": 230, "y": 240 } },
+    { "id": "rect_002", "shape": "rectangle", "label": "亲属", "is_weak": true, "attributes": ["#称呼","姓名","年龄","政治面貌","工作单位"], "position": { "x": 760, "y": 240 } },
+    { "id": "dia_001", "shape": "diamond", "label": "具有", "attributes": [], "position": { "x": 495, "y": 240 } }
+  ],
+  "connections": [
+    { "id": "conn_001", "from": "rect_001", "to": "dia_001", "type": "diamond_line", "label": "", "cardinality": "1" },
+    { "id": "conn_002", "from": "dia_001", "to": "rect_002", "type": "diamond_line", "label": "", "cardinality": "N" }
+  ]
+}

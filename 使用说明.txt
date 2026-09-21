@@ -1,0 +1,11 @@
+在 frontend 目录：
+
+1. npm.cmd install
+2. npm.cmd run mock      （终端 1，本地模拟后端，可选）
+3. npm.cmd run dev       （终端 2）
+4. 浏览器打开 http://localhost:5173
+
+注意：Windows PowerShell 里必须写 npm.cmd，直接写 npm 会被脚本执行策略拦住。
+
+画布操作不依赖后端回包。未启动 mock/FastAPI 时仍可画图，着色保持灰色。
+等 B 的后端就绪后，停掉 mock、直接启动他的服务（同样监听 ws://localhost:8000/ws），前端不用改。
