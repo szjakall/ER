@@ -1,0 +1,13 @@
+{
+  "elements": [
+    { "id": "rect_001", "shape": "rectangle", "label": "供应商", "attributes": ["*供应商号","姓名","地址","账号","电话号码"], "position": { "x": 230, "y": 150 } },
+    { "id": "rect_002", "shape": "rectangle", "label": "项目", "attributes": ["*项目号","开工日期","预算"], "position": { "x": 780, "y": 170 } },
+    { "id": "rect_003", "shape": "rectangle", "label": "零件", "attributes": ["*零件号","名称","规格","单价","描述"], "position": { "x": 520, "y": 480 } },
+    { "id": "dia_001", "shape": "diamond", "label": "供应", "attributes": ["供应量"], "position": { "x": 500, "y": 250 } }
+  ],
+  "connections": [
+    { "id": "conn_001", "from": "rect_001", "to": "dia_001", "type": "diamond_line", "label": "", "cardinality": "M" },
+    { "id": "conn_002", "from": "dia_001", "to": "rect_002", "type": "diamond_line", "label": "", "cardinality": "N" },
+    { "id": "conn_003", "from": "dia_001", "to": "rect_003", "type": "diamond_line", "label": "", "cardinality": "P" }
+  ]
+}

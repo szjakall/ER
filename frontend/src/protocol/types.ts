@@ -1,0 +1,123 @@
+/** 与 INTERFACE.md 字段名 1:1，禁止改成 camelCase */
+
+export type Shape = "rectangle" | "ellipse" | "diamond";
+export type ConnType = "line" | "diamond_line";
+/**
+ * Chen 记法：一条连线上只写一个基数符号。
+ * 联系两端各是一条线，两条线合起来才是 M:N / 1:N 这样的"对应关系"；
+ * 三元联系（如 供应商—供应—项目/零件）是 M:N:P，所以多一个 P。
+ */
+export type CardSymbol = "1" | "N" | "M" | "P";
+export type Cardinality = CardSymbol | null;
+
+/** 该连线是否是"联系分支"（菱形联系 ↔ 矩形实体）——只有这种线才允许写基数 */
+export function isRelationBranch(
+  conn: { from: string; to: string },
+  shapes: Map<string, Shape>,
+): boolean {
+  const a = shapes.get(conn.from);
+  const b = shapes.get(conn.to);
+  return (
+    (a === "diamond" && b === "rectangle") ||
+    (a === "rectangle" && b === "diamond")
+  );
+}
+export type CheckEvent =
+  | "element_added"
+  | "element_modified"
+  | "connection_added"
+  | "connection_modified"
+  | "element_deleted";
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface Element {
+  id: string;
+  shape: Shape;
+  label: string;
+  attributes: string[];
+  position: Position;
+  /** 弱实体（教材里画双线矩形） */
+  is_weak?: boolean;
+  /**
+   * 用户手动拖动属性椭圆后的偏移（相对所属实体中心），按属性下标存。
+   * 只影响画布排版，不参与校验，所以不发给后端。
+   */
+  attr_offsets?: Record<string, Position>;
+}
+
+export interface Connection {
+  id: string;
+  from: string;
+  to: string;
+  type: ConnType;
+  label: string;
+  cardinality: Cardinality;
+}
+
+export interface Issue {
+  rule_id: string;
+  level: "error" | "warn";
+  message: string;
+}
+
+export interface CheckResult {
+  violations: Issue[];
+  suggestions: Issue[];
+}
+
+export type Severity = "ok" | "warn" | "error";
+export type PaintState = "pending" | Severity;
+
+export interface ElementChanges {
+  attributes_changed: boolean;
+  label_changed: boolean;
+}
+
+export interface CheckElementMessage {
+  action: "check";
+  event: "element_added" | "element_modified" | "element_deleted";
+  element: Element;
+  changes?: ElementChanges;
+}
+
+export interface CheckConnectionMessage {
+  action: "check";
+  event: "connection_added" | "connection_modified";
+  connection: Connection;
+}
+
+export type CheckMessage = CheckElementMessage | CheckConnectionMessage;
+
+export interface BatchCheckMessage {
+  action: "batch_check";
+  diagram: {
+    elements: Array<Omit<Element, "position"> & { position?: Position }>;
+    connections: Connection[];
+  };
+}
+
+export type OutgoingMessage = CheckMessage | BatchCheckMessage;
+
+export interface ResultMessage {
+  action: "result";
+  element_id: string;
+  violations: Issue[];
+  suggestions: Issue[];
+}
+
+export interface BatchResultMessage {
+  action: "batch_result";
+  results: Record<string, CheckResult>;
+}
+
+export interface ErrorMessage {
+  action: "error";
+  element_id?: string | null;
+  message: string;
+}
+
+export type IncomingMessage = ResultMessage | BatchResultMessage | ErrorMessage;

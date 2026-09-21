@@ -1,0 +1,11 @@
+{
+  "elements": [
+    { "id": "rect_001", "shape": "rectangle", "label": "学生", "attributes": ["*学号","姓名","性别","年龄","学院"], "position": { "x": 210, "y": 250 } },
+    { "id": "rect_002", "shape": "rectangle", "label": "课程", "attributes": ["*课程号","课程名","课程类型","学分"], "position": { "x": 770, "y": 250 } },
+    { "id": "dia_001", "shape": "diamond", "label": "选修", "attributes": ["成绩"], "position": { "x": 490, "y": 250 } }
+  ],
+  "connections": [
+    { "id": "conn_001", "from": "rect_001", "to": "dia_001", "type": "diamond_line", "label": "", "cardinality": "M" },
+    { "id": "conn_002", "from": "dia_001", "to": "rect_002", "type": "diamond_line", "label": "", "cardinality": "N" }
+  ]
+}
