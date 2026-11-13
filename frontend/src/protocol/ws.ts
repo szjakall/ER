@@ -19,6 +19,8 @@ export class ErCheckClient {
   private ws: WebSocket | null = null;
   private pending = new Map<string, Pending>();
   private seqById = new Map<string, number>();
+  /** 最近一次发送时间：用于「2s 窗口内到达的响应都算有效」，避免旧响应先到就丢掉最新结果 */
+  private lastSent = new Map<string, number>();
   private batchSeq = 0;
   private retryMs = 1000;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -88,8 +90,12 @@ export class ErCheckClient {
     const id =
       payload.event === "connection_added" || payload.event === "connection_modified"
         ? payload.connection.id
-        : payload.element.id;
+        : "element" in payload
+          ? payload.element.id
+          : "";
     if (!id) return 0;
+    this.prune();
+    this.lastSent.set(id, Date.now());
     const seq = (this.seqById.get(id) ?? 0) + 1;
     this.seqById.set(id, seq);
     const old = this.pending.get(id);
@@ -104,6 +110,8 @@ export class ErCheckClient {
   }
 
   sendBatch(payload: OutgoingMessage): number {
+    this.prune();
+    this.lastSent.set("*batch*", Date.now());
     this.batchSeq += 1;
     const seq = this.batchSeq;
     const old = this.pending.get("*batch*");
@@ -115,6 +123,14 @@ export class ErCheckClient {
     }, TIMEOUT_MS);
     this.pending.set("*batch*", { timer, seq });
     return seq;
+  }
+
+  /** 清掉 2s 之前的时间戳，避免长时间使用后 Map 无限增长 */
+  private prune() {
+    const now = Date.now();
+    for (const [id, at] of this.lastSent) {
+      if (now - at > TIMEOUT_MS * 2) this.lastSent.delete(id);
+    }
   }
 
   private trySend(payload: OutgoingMessage) {
@@ -131,25 +147,29 @@ export class ErCheckClient {
     }
     if (msg.action === "result") {
       const id = msg.element_id;
-      const slot = this.pending.get(id);
-      if (slot) {
-        clearTimeout(slot.timer);
-        this.pending.delete(id);
-        this.handlers.onResult?.(id, msg.violations, msg.suggestions, slot.seq);
-      }
+      const at = this.lastSent.get(id);
+      // 契约：2s 内到达才算有效；窗口内允许多次响应，按到达顺序应用（最后一次为准）
+      if (!id || !at || Date.now() - at > TIMEOUT_MS) return;
+      this.clearSlot(id);
+      this.handlers.onResult?.(id, msg.violations, msg.suggestions, 0);
       return;
     }
     if (msg.action === "batch_result") {
-      const slot = this.pending.get("*batch*");
-      if (slot) {
-        clearTimeout(slot.timer);
-        this.pending.delete("*batch*");
-        this.handlers.onBatchResult?.(msg.results ?? {}, slot.seq);
-      }
+      const at = this.lastSent.get("*batch*");
+      if (!at || Date.now() - at > TIMEOUT_MS) return;
+      this.clearSlot("*batch*");
+      this.handlers.onBatchResult?.(msg.results ?? {}, 0);
       return;
     }
     if (msg.action === "error") {
       this.handlers.onError?.(msg.message || "后端错误", msg.element_id);
     }
+  }
+
+  private clearSlot(id: string) {
+    const slot = this.pending.get(id);
+    if (!slot) return;
+    clearTimeout(slot.timer);
+    this.pending.delete(id);
   }
 }

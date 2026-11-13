@@ -6,6 +6,7 @@ import type {
   Element,
   ElementChanges,
 } from "./types";
+import { isFreeConnection } from "./types";
 
 export function encodeElementAdded(element: Element): CheckElementMessage {
   return { action: "check", event: "element_added", element: cloneElement(element) };
@@ -60,7 +61,7 @@ export function encodeBatchCheck(
         attributes: Array.isArray(e.attributes) ? [...e.attributes] : [],
         is_weak: e.is_weak ?? false,
       })),
-      connections: connections.map(cloneConnection),
+      connections: connections.filter((c) => !isFreeConnection(c)).map(cloneConnection),
     },
   };
 }
@@ -80,6 +81,7 @@ function cloneElement(e: Element): Element {
 }
 
 function cloneConnection(c: Connection): Connection {
+  // 白名单：mode / free_end 等前端草稿字段在这里被剥离，绝不进入后端报文
   return {
     id: c.id,
     from: c.from,

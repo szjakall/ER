@@ -1,4 +1,5 @@
 import type { Connection, Element, Issue, Shape } from "../protocol/types";
+import { isFreeConnection } from "../protocol/types";
 import { borderPoint } from "./geometry";
 import { attrBaseAngle, attrNodeBoxes, computeSize } from "./shapes";
 
@@ -82,6 +83,8 @@ export function detectOverlaps(
   }
 
   for (const c of connections) {
+    // 自由端连线没有目标元素，也不参与后端的几何规则
+    if (isFreeConnection(c)) continue;
     const a = byId.get(c.from);
     const b = byId.get(c.to);
     if (!a || !b) continue;

@@ -42,20 +42,53 @@ export interface Element {
   position: Position;
   /** 弱实体（教材里画双线矩形） */
   is_weak?: boolean;
+  /** 标识联系（教材里画双线菱形） */
+  is_identifying?: boolean;
   /**
    * 用户手动拖动属性椭圆后的偏移（相对所属实体中心），按属性下标存。
    * 只影响画布排版，不参与校验，所以不发给后端。
    */
   attr_offsets?: Record<string, Position>;
+  /** 属性椭圆的形状：多值 = 双椭圆，派生 = 虚椭圆。仅排版，不上送。 */
+  attr_style?: Record<string, AttrShape>;
+  /** 用户拖拽控制点后的自定义尺寸。仅排版，不上送。 */
+  size?: { w: number; h: number };
+  /**
+   * 智能页面布局写入的内容级缩放：图形、字号、描边、连线、基数共用同一个比例。
+   * 仅前端排版字段，encode.ts 白名单会剥离，不进入后端协议。
+   */
+  layout_scale?: number;
 }
+
+/** 属性的画法：普通椭圆 / 双椭圆（多值）/ 虚椭圆（派生） */
+export type AttrShape = "normal" | "multi" | "derived";
 
 export interface Connection {
   id: string;
   from: string;
+  /**
+   * 智能连线的目标元素 id。
+   * 自由端连线没有目标元素，这里固定为空串（后端协议不使用该条记录）。
+   */
   to: string;
   type: ConnType;
   label: string;
   cardinality: Cardinality;
+  /**
+   * 连线模式：缺省 = "smart"（两端连接，兼容现有数据与后端协议）；
+   * "free" = 一端连接参与者、另一端自由的本地草稿连线。
+   * 该字段与 free_end 都只在本前端保存，encode.ts 会剥离，不上送后端。
+   */
+  mode?: "smart" | "free";
+  /** 仅 free：自由端的绝对画布坐标 */
+  free_end?: Position;
+}
+
+/** 自由端连线：前端本地模型，不参与后端校验 */
+export function isFreeConnection(
+  conn: Pick<Connection, "mode"> | null | undefined,
+): boolean {
+  return conn?.mode === "free";
 }
 
 export interface Issue {
