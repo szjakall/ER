@@ -1,0 +1,75 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib60/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虚拟环境（工具/依赖一律不入库）
+.venv/
+venv/
+ENV/
+env/
+pythonenv*/
+
+# 测试与覆盖率产物
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+*.cover
+
+# ---------- Node / 前端 ----------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# ---------- 编辑器 / 系统 ----------
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- 运行时与本地产物 ----------
+*.log
+*.pid
+*.sqlite3
+*.db
+
+# 学情台账（运行时产生的教学数据，含学生标识，不入库）
+weakness_log.jsonl
+weakness_log*.jsonl
+
+# ---------- DSH 工具产生的非项目文件 ----------
+operation-state.json
+gate-log.md
+
+# ---------- 用于上传的独立副本 ----------
+# ER-git/ 是打包好的完整项目副本（自带 .git），
+# 不应被本仓库嵌套跟踪，否则会出现"仓库套仓库"的混乱。
+ER-git/
